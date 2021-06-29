@@ -244,15 +244,10 @@ namespace HousingCheck
                 //本区房屋列表
                 var housingList = snapshot.HouseList;
 
-                //本区原先在售的房屋列表
-                List<HousingOnSaleItem> oldOnSaleList = new List<HousingOnSaleItem>();
-                foreach(HousingOnSaleItem housing in HousingList)
-                {
-                    if (housing.Area == snapshot.Area && housing.Slot == snapshot.Slot)
-                    {
-                        oldOnSaleList.Add(housing);
-                    }
-                }
+                // 过滤本区房屋列表
+                var oldOnSaleList = HousingList.Where(h => h.Area == snapshot.Area && h.Slot == snapshot.Slot);
+
+                var removeList = new List<HousingOnSaleItem>();
 
                 foreach (var a in housingList)
                 {
@@ -293,6 +288,8 @@ namespace HousingCheck
                         {
                             Log("Info", "重复土地，已更新。");
                         }
+                    } else if (isExists) {
+                        removeList.Add(onSaleItem);
                     }
                 }
 
@@ -304,6 +301,7 @@ namespace HousingCheck
 
                 //刷新UI
                 control.Invoke(new Action<List<HousingOnSaleItem>>(UpdateTable), updatedHousingList);
+                control.Invoke(new Action<IEnumerable<HousingOnSaleItem>>(removeTableItem), removeList);
             }
             catch (Exception ex)
             {
@@ -422,11 +420,26 @@ namespace HousingCheck
             {
                 int listIndex;
                 if((listIndex = HousingList.IndexOf(item)) != -1){
-                    housingBindingSource[listIndex] = item;
+                    (housingBindingSource[listIndex] as HousingOnSaleItem).Update(item);
                 }
                 else
                 {
                     housingBindingSource.Add(item);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 删除表格中的内容
+        /// </summary>
+        /// <param name="items"></param>
+        void removeTableItem(IEnumerable<HousingOnSaleItem> items)
+        {
+            foreach (var item in items)
+            {
+                if (HousingList.Contains(item))
+                {
+                    housingBindingSource.Remove(item);
                 }
             }
         }
