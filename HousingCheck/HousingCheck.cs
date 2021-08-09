@@ -230,6 +230,11 @@ namespace HousingCheck
             //if (message.Length == 2440) Log("Debug", "opcode=" + opcode);
             if (opcode != OPCODE || message.Length != 2440) return;
 
+            control.Invoke(new Action<byte[]>(NetworkReceivedHandler), message);
+        }
+
+        void NetworkReceivedHandler(byte[] message)
+        {
             HousingSlotSnapshot snapshot;
             List<HousingOnSaleItem> updatedHousingList = new List<HousingOnSaleItem>();
             try
