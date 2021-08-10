@@ -30,7 +30,7 @@ namespace HousingCheck
 
     public class HousingCheck : IActPluginV1
     {
-        public const int OPCODE = 894;
+        public const int OPCODE = 0x141;
         /// <summary>
         /// 房屋列表，用于和控件双向绑定
         /// </summary>
