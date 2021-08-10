@@ -99,6 +99,7 @@ namespace HousingCheck
                     checkBoxUpload.Checked = bool.Parse(head?.SelectSingleNode("AutoUpload")?.InnerText ?? "false");
                     //checkBoxML.Checked = bool.Parse(head?.SelectSingleNode("UploadMLOnly")?.InnerText ?? "true");
                     checkBoxUploadSnapshot.Checked = bool.Parse(head?.SelectSingleNode("UploadSnapshot")?.InnerText ?? "true");
+                    HousingCheck.DEBUG_MODE = bool.Parse(head?.SelectSingleNode("DebugMode")?.InnerText ?? "false");
                 }
                 catch (Exception)
                 {
@@ -119,6 +120,7 @@ namespace HousingCheck
             xWriter.WriteElementString("AutoUpload", checkBoxUpload.Checked.ToString());
             //xWriter.WriteElementString("UploadMLOnly", checkBoxML.Checked.ToString());
             xWriter.WriteElementString("UploadSnapshot", checkBoxUploadSnapshot.Checked.ToString());
+            xWriter.WriteElementString("DebugMode", HousingCheck.DEBUG_MODE.ToString());
             xWriter.WriteEndElement();              // </Config>
             xWriter.WriteEndDocument();             // Tie up loose ends (shouldn't be any)
             xWriter.Flush();                        // Flush the file buffer to disk

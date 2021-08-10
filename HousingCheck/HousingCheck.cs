@@ -30,7 +30,8 @@ namespace HousingCheck
 
     public class HousingCheck : IActPluginV1
     {
-        public const int OPCODE = 894;
+        public static bool DEBUG_MODE = false;
+        public const int OPCODE = 321;
         /// <summary>
         /// 房屋列表，用于和控件双向绑定
         /// </summary>
@@ -228,7 +229,11 @@ namespace HousingCheck
         {
             var opcode = BitConverter.ToUInt16(message, 18);
             //if (message.Length == 2440) Log("Debug", "opcode=" + opcode);
-            if (opcode != OPCODE || message.Length != 2440) return;
+            if ((!DEBUG_MODE && opcode != OPCODE) || message.Length != 2440) return;
+            if (DEBUG_MODE)
+            {
+                Log("Info", string.Format("opcode: {0:X}", opcode.ToString()), true);
+            }
 
             HousingSlotSnapshot snapshot;
             List<HousingOnSaleItem> updatedHousingList = new List<HousingOnSaleItem>();
