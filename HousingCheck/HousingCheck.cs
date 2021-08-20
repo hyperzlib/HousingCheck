@@ -64,6 +64,11 @@ namespace HousingCheck
         bool HousingListUpdated = false;
 
         /// <summary>
+        /// 快照自上次上报以来有更新
+        /// </summary>
+        bool SnapshotUpdated = false;
+
+        /// <summary>
         /// 房区快照
         /// </summary>
         HousingSnapshotStorage SnapshotStorage = new HousingSnapshotStorage();
@@ -245,6 +250,7 @@ namespace HousingCheck
                 //存入存储
                 SnapshotStorage.Insert(snapshot);
                 WillUploadSnapshot[new Tuple<HouseArea, int>(snapshot.Area, snapshot.Slot)] = snapshot;
+                SnapshotUpdated = true;
 
                 //本区房屋列表
                 var housingList = snapshot.HouseList;
@@ -506,6 +512,7 @@ namespace HousingCheck
                 {
                     UploadOnSaleList(apiVersion);
                     HousingListUpdated = false;
+                     // 手动上传在任何情况下都应当上传存储的数据
                     if (apiVersion == ApiVersion.V2 && uploadSnapshot && snapshotCount > 0)
                     {
                         UploadSnapshot();
@@ -529,8 +536,9 @@ namespace HousingCheck
                             HousingListUpdated = false;
                         }
 
+                        // 自动上传永远在数据更新后上传快照
                         if (autoUpload && apiVersion == ApiVersion.V2 && 
-                            uploadSnapshot && snapshotCount > 0)
+                            uploadSnapshot && SnapshotUpdated)
                         {
                             //上传快照
                             UploadSnapshot();
@@ -644,8 +652,8 @@ namespace HousingCheck
                     snapshotJSONObjects.Add(snapshot.ToJsonObject());
                 }
                 string json = JsonConvert.SerializeObject(snapshotJSONObjects);
+                SnapshotUpdated = false;
                 Log("Info", "正在上传房区快照");
-                WillUploadSnapshot.Clear();
                 bool res = UploadData("info", json);
                 if (res)
                 {
