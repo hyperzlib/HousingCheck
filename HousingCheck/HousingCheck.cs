@@ -13,7 +13,7 @@ using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using System.Windows.Shell;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 public static class Extensions
 {
@@ -201,6 +201,7 @@ namespace HousingCheck
         {
             if (onSaleItem.Size == HouseSize.M || onSaleItem.Size == HouseSize.L)
             {
+                bool fallback = true;
                 if (control.checkboxTTS.Checked)
                 {
                     ActGlobals.oFormActMain.TTS(
@@ -211,14 +212,25 @@ namespace HousingCheck
                             onSaleItem.SizeStr
                         )
                     );
+                    fallback = false;
                 } 
-                else
-                {
-                    PlayAlert();
-                }
                 if (control.checkBoxNotification.Checked)
                 {
-                    // todo:
+                    var title = string.Format("{0} 第{1}区 {2}号 {3}房",
+                            onSaleItem.AreaStr,
+                            onSaleItem.DisplaySlot,
+                            onSaleItem.DisplayId,
+                            onSaleItem.SizeStr
+                        );
+                    new ToastContentBuilder()
+                        .AddText("新空房")
+                        .AddText(title)
+                        .Show();
+                    fallback = false;
+                }
+                if (fallback)
+                {
+                    PlayAlert();
                 }
             }
         }
