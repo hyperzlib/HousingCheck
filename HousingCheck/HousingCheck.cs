@@ -13,6 +13,7 @@ using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.Windows.Shell;
 
 public static class Extensions
 {
@@ -183,9 +184,43 @@ namespace HousingCheck
             control.buttonUploadOnce.Click += ButtonUploadOnce_Click;
             control.buttonCopyToClipboard.Click += ButtonCopyToClipboard_Click;
             control.buttonSaveToFile.Click += ButtonSaveToFile_Click;
+            control.buttonNotifyTest.Click += ButtonNotifyTest_Click;
             PrepareDir();
             //恢复上次列表
             LoadHousingList();
+        }
+
+        private void ButtonNotifyTest_Click(object sender, EventArgs e)
+        {
+            new Action(() => {
+                NotifyEmptyHouse(new HousingOnSaleItem(HouseArea.海雾村, 1, 2, HouseSize.L, 10000000, false), false);
+            }).Invoke();
+        }
+
+        void NotifyEmptyHouse(HousingOnSaleItem onSaleItem, bool exists)
+        {
+            if (onSaleItem.Size == HouseSize.M || onSaleItem.Size == HouseSize.L)
+            {
+                if (control.checkboxTTS.Checked)
+                {
+                    ActGlobals.oFormActMain.TTS(
+                        string.Format("{0}{1}区{2}号{3}房",
+                            HousingItem.GetHouseAreaShortStr(onSaleItem.Area),
+                            onSaleItem.DisplaySlot,
+                            onSaleItem.DisplayId,
+                            onSaleItem.SizeStr
+                        )
+                    );
+                } 
+                else
+                {
+                    PlayAlert();
+                }
+                if (control.checkBoxNotification.Checked)
+                {
+                    // todo:
+                }
+            }
         }
 
         /// <summary>
@@ -196,6 +231,7 @@ namespace HousingCheck
             Console.Beep(3000, 1000);
         }
 
+        [Obsolete("使用自己解析的服务器ID以避免在版本更新初期由于ACT解析插件无法正常工作导致无法获取服务器ID的问题。")]
         int GetServerId()
         {
             return (int)ffxivPlugin.DataRepository.GetCombatantList()
@@ -246,7 +282,6 @@ namespace HousingCheck
             {
                 //解析数据包
                 snapshot = new HousingSlotSnapshot(message);
-                snapshot.ServerId = GetServerId();
                 //存入存储
                 SnapshotStorage.Insert(snapshot);
                 WillUploadSnapshot[new Tuple<HouseArea, int>(snapshot.Area, snapshot.Slot)] = snapshot;
@@ -285,13 +320,9 @@ namespace HousingCheck
                             onSaleItem.AreaStr, onSaleItem.DisplaySlot, onSaleItem.DisplayId,
                             onSaleItem.SizeStr, onSaleItem.Price), true);
 
+                        NotifyEmptyHouse(onSaleItem, isExists);
                         if (!isExists)
                         {
-                            if (onSaleItem.Size == HouseSize.M || onSaleItem.Size == HouseSize.L)
-                            {
-                                PlayAlert();
-                            }
-
                             updatedHousingList.Add(onSaleItem);
                             HousingListUpdated = true;
                         }

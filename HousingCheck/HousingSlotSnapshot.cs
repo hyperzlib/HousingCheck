@@ -51,6 +51,7 @@ namespace HousingCheck
                     break;
             }
             Slot = dataHeader[2];
+            ServerId = BitConverter.ToUInt16(dataHeader, 6);
 
             for (int i = 8; i < dataList.Length; i += 40)
             {

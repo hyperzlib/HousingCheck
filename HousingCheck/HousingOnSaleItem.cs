@@ -9,8 +9,8 @@ namespace HousingCheck
         public HousingOnSaleItem(HouseArea _area, int _slot, int _id, HouseSize _size, int _price, bool _status)
         {
             Area = _area;
-            Slot = _slot + 1;
-            Id = _id + 1;
+            Slot = _slot - 1;
+            Id = _id - 1;
             Size = _size;
             Price = _price;
             AddTime = DateTime.Now;

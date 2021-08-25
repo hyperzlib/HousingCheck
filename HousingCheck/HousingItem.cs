@@ -198,6 +198,22 @@ namespace HousingCheck
                     return "未知";
             }
         }
+        public static string GetHouseAreaShortStr(HouseArea area)
+        {
+            switch (area)
+            {
+                case HouseArea.海雾村:
+                    return "海";
+                case HouseArea.薰衣草苗圃:
+                    return "森";
+                case HouseArea.高脚孤丘:
+                    return "沙";
+                case HouseArea.白银乡:
+                    return "白";
+                default:
+                    return "未知";
+            }
+        }
 
         public static string GetHouseSizeStr(HouseSize size)
         {
