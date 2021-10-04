@@ -103,7 +103,7 @@ namespace HousingCheck
         /// 状态信息
         /// </summary>
         Label statusLabel;
-        PluginControl control; 
+        PluginControl control;
 
         private object GetFfxivPlugin()
         {
@@ -122,7 +122,7 @@ namespace HousingCheck
             return ffxivPlugin;
         }
 
-        public void DeInitPlugin()
+        void IActPluginV1.DeInitPlugin()
         {
             if (initialized)
             {
@@ -142,7 +142,7 @@ namespace HousingCheck
             }
         }
 
-        public void InitPlugin(TabPage pluginScreenSpace, Label pluginStatusText)
+        void IActPluginV1.InitPlugin(TabPage pluginScreenSpace, Label pluginStatusText)
         {
             statusLabel = pluginStatusText;
             GetFfxivPlugin();
@@ -192,9 +192,12 @@ namespace HousingCheck
 
         private void ButtonNotifyTest_Click(object sender, EventArgs e)
         {
-            new Action(() => {
-                NotifyEmptyHouse(new HousingOnSaleItem(HouseArea.海雾村, 1, 2, HouseSize.L, 10000000, false), false);
-            }).Invoke();
+            NotifyEmptyHouseAsync(new HousingOnSaleItem(HouseArea.海雾村, 1, 2, HouseSize.L, 10000000, false), false);
+        }
+
+        void NotifyEmptyHouseAsync(HousingOnSaleItem onSaleItem, bool exists)
+        {
+            new Action<HousingOnSaleItem, bool>((item, exist) => { NotifyEmptyHouse(item, exist); }).Invoke(onSaleItem, exists);
         }
 
         void NotifyEmptyHouse(HousingOnSaleItem onSaleItem, bool exists)
@@ -254,9 +257,12 @@ namespace HousingCheck
         {
             var time = (DateTime.Now).ToString("HH:mm:ss");
             var text = $"[{time}] [{type}] {message.Trim()}";
-            control.textBoxLog.Text += text + Environment.NewLine;
-            control.textBoxLog.SelectionStart = control.textBoxLog.TextLength;
-            control.textBoxLog.ScrollToCaret(); 
+            control.Invoke(new Action<string>((msg) => {
+                control.textBoxLog.AppendText(text + Environment.NewLine);
+                control.textBoxLog.SelectionStart = control.textBoxLog.TextLength;
+                control.textBoxLog.ScrollToCaret();
+            }), text);
+
             text = $"00|{DateTime.Now.ToString("O")}|0|HousingCheck-{message}|";        //解析插件数据格式化
             //ActGlobals.oFormActMain.ParseRawLogLine(true, DateTime.Now, $"{text}");
             if (important)
@@ -283,7 +289,7 @@ namespace HousingCheck
             //if (message.Length == 2440) Log("Debug", "opcode=" + opcode);
             if (opcode != OPCODE || message.Length != 2440) return;
 
-            control.Invoke(new Action<byte[]>(NetworkReceivedHandler), message);
+            NetworkReceivedHandler(message);
         }
 
         void NetworkReceivedHandler(byte[] message)
@@ -332,7 +338,7 @@ namespace HousingCheck
                             onSaleItem.AreaStr, onSaleItem.DisplaySlot, onSaleItem.DisplayId,
                             onSaleItem.SizeStr, onSaleItem.Price), true);
 
-                        NotifyEmptyHouse(onSaleItem, isExists);
+                        NotifyEmptyHouseAsync(onSaleItem, isExists);
                         if (!isExists)
                         {
                             updatedHousingList.Add(onSaleItem);
@@ -354,8 +360,8 @@ namespace HousingCheck
                     snapshot.Slot + 1), true);     //输出翻页日志
 
                 //刷新UI
-                control.Invoke(new Action<List<HousingOnSaleItem>>(UpdateTable), updatedHousingList);
-                control.Invoke(new Action<IEnumerable<HousingOnSaleItem>>(removeTableItem), removeList);
+                control.BeginInvoke(new Action<List<HousingOnSaleItem>>(UpdateTable), updatedHousingList);
+                control.BeginInvoke(new Action<IEnumerable<HousingOnSaleItem>>(removeTableItem), removeList);
             }
             catch (Exception ex)
             {
