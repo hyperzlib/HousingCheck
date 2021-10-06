@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Microsoft.Toolkit.Uwp.Notifications;
+using System.Collections.Concurrent;
 
 public static class Extensions
 {
@@ -77,7 +78,7 @@ namespace HousingCheck
         /// <summary>
         /// 进行房区快照上报用的存储
         /// </summary>
-        Dictionary<Tuple<HouseArea, int>, HousingSlotSnapshot> WillUploadSnapshot = new Dictionary<Tuple<HouseArea, int>, HousingSlotSnapshot>();
+        ConcurrentDictionary<Tuple<HouseArea, int>, HousingSlotSnapshot> WillUploadSnapshot = new ConcurrentDictionary<Tuple<HouseArea, int>, HousingSlotSnapshot>();
         
         /// <summary>
         /// 用户上次操作的时间
@@ -244,13 +245,6 @@ namespace HousingCheck
         void PlayAlert()
         {
             Console.Beep(3000, 1000);
-        }
-
-        [Obsolete("使用自己解析的服务器ID以避免在版本更新初期由于ACT解析插件无法正常工作导致无法获取服务器ID的问题。")]
-        int GetServerId()
-        {
-            return (int)ffxivPlugin.DataRepository.GetCombatantList()
-                .FirstOrDefault(x => x.ID == ffxivPlugin.DataRepository.GetCurrentPlayerID()).CurrentWorldID;
         }
 
         void Log(string type, string message, bool important = false)
@@ -698,7 +692,10 @@ namespace HousingCheck
                 List<HousingSlotSnapshotJSONObject> snapshotJSONObjects = new List<HousingSlotSnapshotJSONObject>();
                 foreach(var snapshot in WillUploadSnapshot.Values)
                 {
-                    snapshotJSONObjects.Add(snapshot.ToJsonObject());
+                    if (snapshot != null)
+                    {
+                        snapshotJSONObjects.Add(snapshot.ToJsonObject());
+                    }
                 }
                 string json = JsonConvert.SerializeObject(snapshotJSONObjects);
                 SnapshotUpdated = false;

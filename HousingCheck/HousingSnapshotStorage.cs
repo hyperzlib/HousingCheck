@@ -16,20 +16,22 @@ namespace HousingCheck
 
         public void Insert(HousingSlotSnapshot snapshot)
         {
-            if (!Snapshots.ContainsKey(snapshot.ServerId))
+            lock (this) 
             {
-                Snapshots.Add(snapshot.ServerId, new ServerHousingStorage());
-            }
-            var serverStorage = Snapshots[snapshot.ServerId];
+                if (!Snapshots.ContainsKey(snapshot.ServerId))
+                {
+                    Snapshots.Add(snapshot.ServerId, new ServerHousingStorage());
+                }
+                var serverStorage = Snapshots[snapshot.ServerId];
 
-            if (!serverStorage.ContainsKey(snapshot.Area))
-            {
-                serverStorage.Add(snapshot.Area, new AreaHousingStorage());
-            }
-            var areaStorage = serverStorage[snapshot.Area];
+                if (!serverStorage.ContainsKey(snapshot.Area))
+                {
+                    serverStorage.Add(snapshot.Area, new AreaHousingStorage());
+                }
+                var areaStorage = serverStorage[snapshot.Area];
 
-            areaStorage[snapshot.Slot] = snapshot;
-            
+                areaStorage[snapshot.Slot] = snapshot;
+            }
         }
 
         public void SaveCsv(StreamWriter writer)
